@@ -15,7 +15,7 @@ It is written for beginners. Every step explains **what** to do, **why** it matt
 | 1 | [part-1-secure-install](part-1-secure-install/README.md) | Chroma behind a TLS gateway with per-role tokens, an allowlist, tenant isolation, path-trick defenses, and tested backups | Available |
 | 2 | [part-2-rag](part-2-rag/README.md) | A full RAG chatbot (Chroma, Ollama, FastAPI, NGINX, Gradio) on three segmented networks, with read-only chat and write-only ingest tokens | Available |
 | 3 | [part-3-prompt-injection](part-3-prompt-injection/README.md) | Attack the chatbot eight ways (direct and indirect prompt injection, secret leaks, data theft through images), then add and measure four layers of defense | Available |
-| 4 | `part-4-container-hardening` | Non-root containers, read-only filesystems, dropped capabilities, image scanning, internal TLS | Coming soon |
+| 4 | [part-4-container-hardening](part-4-container-hardening/README.md) | Audit every container, play the attacker inside one, then add six hardening layers (non-root, no capabilities, read-only, secrets out of env vars, internal TLS, scanned and pinned images) and re-measure after each | Available |
 | 5 | `part-5-logging-red-team` | Audit logging, monitoring, and a structured red-team exercise | Coming soon |
 
 Do the parts in order. Each one builds on the last.
