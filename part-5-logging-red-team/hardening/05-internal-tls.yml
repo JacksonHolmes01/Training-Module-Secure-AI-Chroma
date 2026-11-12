@@ -1,0 +1,29 @@
+# Layer 5: encrypt and verify traffic between the API and the Chroma gateway (Lesson 9).
+# Chroma itself cannot speak TLS, so the gateway does it. The last hop
+# (gateway -> Chroma) stays on the isolated "data" network that nothing
+# else can join.
+services:
+  chroma-gateway:
+    volumes: !override
+      - ./chroma-gateway/default-tls.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./secrets/tokens.map:/etc/nginx/secrets/tokens.map:ro
+      - ./secrets/gateway.crt:/etc/nginx/secrets/gateway.crt:ro
+      - ./secrets/gateway.key:/etc/nginx/secrets/gateway.key:ro
+
+  chroma-init:
+    environment:
+      CHROMA_URL: https://chroma-gateway:8443
+      CHROMA_CA_CERT: /run/secrets/tls_ca_crt
+    secrets:
+      - tls_ca_crt
+
+  ingestion-api:
+    environment:
+      CHROMA_URL: https://chroma-gateway:8443
+      CHROMA_CA_CERT: /run/secrets/tls_ca_crt
+    secrets:
+      - tls_ca_crt
+
+secrets:
+  tls_ca_crt:
+    file: ./secrets/tls_ca.crt

@@ -1,0 +1,52 @@
+# Layer 1: run every container as an unprivileged user (Lesson 5).
+services:
+  # Chroma's data folder is created owned by root. This one-time container
+  # hands it to user 10001, then exits. It is the ONLY thing that runs as
+  # root, it holds exactly one capability (CHOWN), and it has no network.
+  chroma-perms:
+    image: chromadb/chroma:1.5.9
+    container_name: rag-chroma-perms
+    restart: "no"
+    user: "0:0"
+    entrypoint: ["sh", "-c", "chown -R 10001:10001 /data && echo 'chroma data folder now owned by 10001'"]
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: ["no-new-privileges:true"]
+    network_mode: none
+    volumes:
+      - chroma_data:/data
+
+  chroma:
+    user: "10001:10001"
+    depends_on:
+      chroma-perms:
+        condition: service_completed_successfully
+
+  chroma-gateway:
+    # The official NGINX image starts as root; this variant never does
+    image: nginxinc/nginx-unprivileged:1.28.2-alpine
+
+  # chroma-init already runs as a non-root user (curl_user) by default
+
+  ollama:
+    user: "10001:10001"
+    environment:
+      HOME: /tmp
+      OLLAMA_MODELS: /ollama/models
+    # Models are mounted READ-ONLY: nothing in this container can replace them
+    volumes: !override
+      - ollama_data:/ollama:ro
+
+  ingestion-api:
+    user: "10001:10001"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+
+  nginx:
+    image: nginxinc/nginx-unprivileged:1.28.2-alpine
+
+  gradio-ui:
+    user: "10001:10001"
+    environment:
+      HOME: /tmp
+      PYTHONDONTWRITEBYTECODE: "1"

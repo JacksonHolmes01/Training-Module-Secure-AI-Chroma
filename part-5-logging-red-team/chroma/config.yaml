@@ -1,0 +1,10 @@
+# Chroma server configuration (mounted read-only into the container)
+
+# Where Chroma stores its data inside the container (backed by a Docker volume)
+persist_path: "/data"
+
+# Never allow the API to wipe the whole database
+allow_reset: false
+
+# Reject request bodies larger than 1 MB
+max_payload_size_bytes: 1048576
