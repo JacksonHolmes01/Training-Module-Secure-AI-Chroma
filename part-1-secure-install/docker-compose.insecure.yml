@@ -1,0 +1,16 @@
+name: secure-ai-chroma-insecure-demo
+
+# DEMONSTRATION ONLY (Lesson 4). Do not use this file for anything else.
+#
+# This is how many tutorials run Chroma: one container, port published,
+# "auth" environment variables set. Lesson 4 shows that none of it protects you.
+services:
+  chroma-insecure:
+    image: chromadb/chroma:1.5.9
+    container_name: chroma-insecure
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      # These settings worked in old Chroma versions. Chroma 1.x ignores them.
+      CHROMA_SERVER_AUTHN_PROVIDER: "chromadb.auth.token_authn.TokenAuthenticationServerProvider"
+      CHROMA_SERVER_AUTHN_CREDENTIALS: "my-secret-token"
