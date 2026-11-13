@@ -57,6 +57,21 @@ def now():
     return datetime.now(timezone.utc)
 
 
+def log_clock():
+    """The time on the clock that stamps the logs: Docker's.
+
+    On macOS, Docker runs in a small virtual machine whose clock can drift
+    from your computer's (for example after the laptop sleeps) and then jump
+    when it resyncs. Recording each step on Docker's clock keeps the step
+    times lined up with the log times, so coverage scoring stays correct."""
+    try:
+        out = subprocess.run(["docker", "exec", "rag-api", "python", "-c", "import time; print(time.time())"],
+                             capture_output=True, text=True, timeout=15).stdout.strip()
+        return datetime.fromtimestamp(float(out), timezone.utc)
+    except (ValueError, subprocess.SubprocessError, OSError):
+        return now()
+
+
 # ---------------------------------------------------------------------------
 # The campaign. Each step returns a short note about what the attacker saw.
 # ---------------------------------------------------------------------------
@@ -202,18 +217,18 @@ def main():
     if http("GET", "/health") != 200:
         sys.exit("The API is not answering at localhost:8088. Start the stack first.")
 
-    run = {"started": now().isoformat(), "steps": []}
+    run = {"started": log_clock().isoformat(), "steps": []}
     print("Red-team campaign against YOUR lab. About 2 to 3 minutes.\n")
     for sid, name, technique, rules, fn in STEPS:
-        start = now()
+        start = log_clock()
         print(f"{sid}  {name:<30} ", end="", flush=True)
         note = fn()
-        end = now()
+        end = log_clock()
         print(note)
         run["steps"].append({"id": sid, "name": name, "technique": technique, "expected_rules": rules,
                              "start": start.isoformat(), "end": end.isoformat(), "note": note})
         time.sleep(5)
-    run["ended"] = now().isoformat()
+    run["ended"] = log_clock().isoformat()
 
     out_dir = ROOT / "redteam" / "runs"
     out_dir.mkdir(parents=True, exist_ok=True)
